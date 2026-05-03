@@ -10,6 +10,7 @@ interface IUsers {
     birthday: Date;
     gender: Gender;
     email: string;
+    active: boolean;
 }
 
 export default IUsers;

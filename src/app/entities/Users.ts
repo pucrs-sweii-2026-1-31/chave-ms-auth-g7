@@ -7,7 +7,7 @@ class Users implements IUsers {
     @PrimaryGeneratedColumn('increment', { name: 'id_user' })
     idUser: number;
 
-    @Column({ name: 'name', nullable: false})
+    @Column({ name: 'name', nullable: false })
     name: string;
 
     @Column({ name: 'birthday', type: "date", nullable: false })
@@ -18,6 +18,9 @@ class Users implements IUsers {
 
     @Column({ name: 'email', nullable: false })
     email: string;
+
+    @Column({name: 'active', type: 'boolean', nullable: false, default: true })
+    active: boolean;
 
     @ManyToMany(() => Roles, (role) => role.users)
     @JoinTable({
