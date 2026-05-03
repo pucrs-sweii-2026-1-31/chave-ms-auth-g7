@@ -1,18 +1,31 @@
 {
   "name": "chave-ms-auth",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "build": "tsc",
+    "start": "npm run build && node dist/server.js",
+    "dev": "nodemon"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "body-parser": "^2.2.2",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2",
+    "express": "^5.2.1",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.11.3"
+    "typeorm": "^0.3.28"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "@types/body-parser": "^1.19.6",
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.25",
+    "@types/node": "^25.6.0",
+    "nodemon": "^3.0.2",
+    "typescript": "^6.0.3"
   }
 }
