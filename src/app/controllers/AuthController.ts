@@ -3,6 +3,7 @@ import Users from '../entities/Users.js';
 import { login, generateJWT } from '../services/AuthService.js';
 import Roles from '../entities/Roles.js';
 import { loginLimiter } from '../middlewares/rateLimiter.js';
+import { authMiddleware, AuthRequest } from '../middlewares/authMiddleware.js';
 
 const authRouter = Router();
 
@@ -31,6 +32,10 @@ authRouter.post('/login', loginLimiter, async (_req: Request, res: Response) => 
         });
     })
 
+});
+
+authRouter.get('/me', authMiddleware, (req: AuthRequest, res: Response) => {
+    res.status(200).json(req.loggedUser);
 });
 
 export { authRouter };

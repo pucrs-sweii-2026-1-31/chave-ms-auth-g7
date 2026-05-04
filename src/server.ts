@@ -1,14 +1,12 @@
 
 import express from 'express';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import http from 'http';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
-
-// import pool from './config/db.js';
 import { AppDataSource } from './database/database-config.js';
 import authRoutes from './app/routes/Routes.js';
 import { errorHandling } from './app/middlewares/errorHandler.js';
