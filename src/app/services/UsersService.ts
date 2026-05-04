@@ -1,11 +1,9 @@
 import Users from '../entities/Users.js';
 import Roles from '../entities/Roles.js';
 import { Gender } from '../interfaces/iUsers.js';
-import { checkIfExistsByEmailAndNotId, save } from '../repositories/UserRepository.js';
+import { getActiveUserByEmail, checkIfExistsByEmailAndNotId, save } from '../repositories/UserRepository.js';
 import { getRoleByName } from '../repositories/RoleRepository.js';
 import bcrypt from 'bcrypt';
-import { BroadcasterResult } from 'typeorm/subscriber/BroadcasterResult.js';
-import { pathToFileURL } from 'node:url';
 
 const createUser = async (payload: {
     name: string,
@@ -49,7 +47,10 @@ const createUser = async (payload: {
     user.roles = [basicRole];
     user.active = true;
 
-    return save(user);
+    // Desestruturando o usuário sem o hash da senha
+    let { passwordHash: _, ...userWithoutPassword } = await save(user);
+
+    return userWithoutPassword as Users;
 }
 
 const validateClearEmail = async (idUser: number | null, email: string): Promise<boolean> => {
@@ -87,4 +88,22 @@ const isValidPassword = (password: string): boolean => {
     );
 };
 
-export { createUser };
+const login = async (email: string, password: string): Promise<Users> => {
+    const user = await getActiveUserByEmail(email);
+
+    if (!user) {
+        throw new Error('Email ou senha não batem.');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+
+    if (!isMatch) {
+        throw new Error('Email ou senha não batem.');
+    }
+
+    let { passwordHash: _, ...userWithoutPassword } = await save(user);
+
+    return userWithoutPassword as Users;
+};
+
+export { createUser, login };

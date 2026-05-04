@@ -21,7 +21,7 @@ class Users implements IUsers {
     email: string;
 
     @Exclude()
-    @Column({name: 'password_hash', nullable: false, select: false })
+    @Column({name: 'password_hash', nullable: false })
     passwordHash: string;
 
     @Column({name: 'active', type: 'boolean', nullable: false, default: true })
