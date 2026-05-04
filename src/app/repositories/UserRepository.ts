@@ -5,8 +5,7 @@ import { Not } from "typeorm";
 const userRepository = AppDataSource.getRepository(Users);
 
 const getActiveUserByEmail = async (email: string): Promise<Users | null> => {
-    const user = await userRepository.findOne({ where: { email, active: true } });
-    return user ? (user as Users) : null;
+    return userRepository.findOne({ where: { email, active: true } });
 };
 
 const checkIfExistsByEmailAndNotId = async (idUser: number | null, email: string): Promise<boolean> => {

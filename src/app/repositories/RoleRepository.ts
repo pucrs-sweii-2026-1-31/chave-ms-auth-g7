@@ -5,8 +5,7 @@ import { Not } from "typeorm";
 const roleRepository = AppDataSource.getRepository(Roles);
 
 const getRoleByName = async (name: string): Promise<Roles | null> => {
-    const role = await roleRepository.findOne({ where: { name } });
-    return role ? (role as Roles) : null;
+    return roleRepository.findOne({ where: { name } });
 };
 
 export { 
