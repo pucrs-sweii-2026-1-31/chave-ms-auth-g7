@@ -13,7 +13,8 @@ export const loginLimiter = rateLimit({
     limit: 10,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
-    message: { status: 429, message: 'Muitas tentativas de login. Tente novamente em 15 minutos.' }
+    skipSuccessfulRequests: true,
+    message: { status: 429, message: 'Muitas tentativas de login. Tente novamente em 5 minutos.' }
 });
 
 export const signUpLimiter = rateLimit({
