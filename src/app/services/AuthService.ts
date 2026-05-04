@@ -1,0 +1,44 @@
+import Users from '../entities/Users.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { getActiveUserByEmail } from '../repositories/UserRepository.js';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const SECRET = process.env.JWT_SECRET ?? 'change_me';
+
+const login = async (email: string, password: string): Promise<Users> => {
+    const user = await getActiveUserByEmail(email);
+
+    if (!user) {
+        throw new Error('Email ou senha não batem.');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+
+    if (!isMatch) {
+        throw new Error('Email ou senha não batem.');
+    }
+
+    let { passwordHash: _, ...userWithoutPassword } = user;
+
+    return userWithoutPassword as Users;
+};
+
+const generateJWT = (user: Users): string => {
+    return jwt.sign(
+        { 
+            idUser: user.idUser,
+            email: user.email,
+            roles: user.roles.map(r => r.name)
+        },
+        SECRET,
+        { expiresIn: '4h' }
+    );
+}
+
+const userFromJWT = async (): Promise<Users> => {
+    throw new Error("Implementar!");
+}
+
+export { login, generateJWT };

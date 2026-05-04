@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import Users from '../entities/Users.js';
-import { createUser, login } from '../services/UsersService.js';
+import { createUser } from '../services/UsersService.js';
 
 const userRouter = Router();
 
@@ -31,28 +31,6 @@ userRouter.post('/sign-up', async (_req: Request, res: Response) => {
         });
     })
     
-});
-
-userRouter.post('/login', async (_req: Request, res: Response) => {
-    const { email, password } = _req.body;
-    
-    if (!email || !password) {
-        return res.status(400).json({ message: 'Email e senha são obrigatórios' });
-    }
-
-    login(email, password)
-    .then((user: Users) => {
-        res.status(200).json(user);
-    })
-    .catch((error: Error) => {
-        console.log(error);
-        res.status(500).json({
-            status: 500,
-            message: "Erro ao tentar criar um novo usuário.",
-            error: error.message
-        });
-    })
-
 });
 
 userRouter.put('/save', async (_req: Request, res: Response) => {

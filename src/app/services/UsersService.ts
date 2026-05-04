@@ -1,7 +1,7 @@
 import Users from '../entities/Users.js';
 import Roles from '../entities/Roles.js';
 import { Gender } from '../interfaces/iUsers.js';
-import { getActiveUserByEmail, checkIfExistsByEmailAndNotId, save } from '../repositories/UserRepository.js';
+import { checkIfExistsByEmailAndNotId, save } from '../repositories/UserRepository.js';
 import { getRoleByName } from '../repositories/RoleRepository.js';
 import bcrypt from 'bcrypt';
 
@@ -13,25 +13,12 @@ const createUser = async (payload: {
     password: string,
     confirmationPassword: string
 }): Promise<Users> => {
-    if (!isValidName(payload.name)) {
-        throw new Error("Deve ser informado o nome do usuário.");
-    }
-    if (!isValidBirthday(payload.birthday)) {
-        throw new Error("A data de nascimento deve ser informada e deve ser uma data no passado.");
-    }
-    console.log(payload.password);
-    if (!isValidPassword(payload.password)) {
-        throw new Error("A senha deve conter no mínimo 10 caracteres com pelo menos uma letra maiúscula, uma letra minuscula, um número e um caractere especial");
-    }
-    if (payload.password !== payload.confirmationPassword) {
-        throw new Error("A senha e sua confirmação não são iguais.");
-    }
-    if (!isValidEmail(payload.email)) {
-        throw new Error("O email informado não está em formato de email");
-    }
+    allUserCreateDataValidations(payload);
+
     if (await validateClearEmail(null, payload.email)) {
         throw new Error("Email já em uso.");
     }
+
     let user = new Users();
     user.name = payload.name;
     user.birthday = payload.birthday;
@@ -51,6 +38,31 @@ const createUser = async (payload: {
     let { passwordHash: _, ...userWithoutPassword } = await save(user);
 
     return userWithoutPassword as Users;
+}
+
+const allUserCreateDataValidations = (payload: {
+    name: string,
+    birthday: Date,
+    gender: Gender,
+    email: string,
+    password: string,
+    confirmationPassword: string
+}) => {
+    if (!isValidName(payload.name)) {
+        throw new Error("Deve ser informado o nome do usuário.");
+    }
+    if (!isValidBirthday(payload.birthday)) {
+        throw new Error("A data de nascimento deve ser informada e deve ser uma data no passado.");
+    }
+    if (!isValidPassword(payload.password)) {
+        throw new Error("A senha deve conter no mínimo 10 caracteres com pelo menos uma letra maiúscula, uma letra minuscula, um número e um caractere especial");
+    }
+    if (payload.password !== payload.confirmationPassword) {
+        throw new Error("A senha e sua confirmação não são iguais.");
+    }
+    if (!isValidEmail(payload.email)) {
+        throw new Error("O email informado não está em formato de email");
+    }
 }
 
 const validateClearEmail = async (idUser: number | null, email: string): Promise<boolean> => {
@@ -88,22 +100,4 @@ const isValidPassword = (password: string): boolean => {
     );
 };
 
-const login = async (email: string, password: string): Promise<Users> => {
-    const user = await getActiveUserByEmail(email);
-
-    if (!user) {
-        throw new Error('Email ou senha não batem.');
-    }
-
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
-
-    if (!isMatch) {
-        throw new Error('Email ou senha não batem.');
-    }
-
-    let { passwordHash: _, ...userWithoutPassword } = await save(user);
-
-    return userWithoutPassword as Users;
-};
-
-export { createUser, login };
+export { createUser };
