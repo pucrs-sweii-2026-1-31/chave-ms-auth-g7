@@ -11,7 +11,9 @@ userRouter.post('/sign-up', async (_req: Request, res: Response) => {
         name: body.name,
         birthday: body.birthday,
         email: body.email,
-        gender: body.gender
+        gender: body.gender,
+        password: body.password,
+        confirmationPassword: body.confirmationPassword
     }).then((user: Users) => {
         res.status(200).json(user);
     }).catch((error: Error) => {
@@ -26,7 +28,7 @@ userRouter.post('/sign-up', async (_req: Request, res: Response) => {
 });
 
 userRouter.put('/save', async (_req: Request, res: Response) => {
-    
+
 });
 
 export { userRouter };

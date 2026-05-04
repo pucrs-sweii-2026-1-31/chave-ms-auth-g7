@@ -1,5 +1,6 @@
 import IUsers, { Gender } from "../interfaces/iUsers.js";
 import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, CreateDateColumn, UpdateDateColumn, JoinTable } from "typeorm";
+import { Exclude } from 'class-transformer';
 import Roles from "./Roles.js";
 
 @Entity('users')
@@ -18,6 +19,10 @@ class Users implements IUsers {
 
     @Column({ name: 'email', nullable: false })
     email: string;
+
+    @Exclude()
+    @Column({name: 'password_hash', nullable: false, select: false })
+    passwordHash: string;
 
     @Column({name: 'active', type: 'boolean', nullable: false, default: true })
     active: boolean;
