@@ -1,10 +1,11 @@
 import { Request, Response, Router } from 'express';
 import Users from '../entities/Users.js';
 import { createUser } from '../services/UsersService.js';
+import { signUpLimiter } from '../middlewares/rateLimiter.js';
 
 const userRouter = Router();
 
-userRouter.post('/sign-up', async (_req: Request, res: Response) => {
+userRouter.post('/sign-up', signUpLimiter, async (_req: Request, res: Response) => {
     let {
         name, 
         birthday, 

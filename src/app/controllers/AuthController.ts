@@ -2,10 +2,11 @@ import { Request, Response, Router } from 'express';
 import Users from '../entities/Users.js';
 import { login, generateJWT } from '../services/AuthService.js';
 import Roles from '../entities/Roles.js';
+import { loginLimiter } from '../middlewares/rateLimiter.js';
 
 const authRouter = Router();
 
-authRouter.post('/login', async (_req: Request, res: Response) => {
+authRouter.post('/login', loginLimiter, async (_req: Request, res: Response) => {
     const { email, password } = _req.body;
     
     if (!email || !password) {
