@@ -1,14 +1,14 @@
 import Users from '../entities/Users.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { getActiveUserByEmail } from '../repositories/UserRepository.js';
+import { getByEmailAndActive } from '../repositories/UserRepository.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
 const SECRET = process.env.JWT_SECRET ?? 'change_me';
 
 const login = async (email: string, password: string): Promise<Users> => {
-    const user = await getActiveUserByEmail(email);
+    const user = await getByEmailAndActive(email);
 
     if (!user) {
         throw new Error('Email ou senha não batem.');
@@ -35,10 +35,6 @@ const generateJWT = (user: Users): string => {
         SECRET,
         { expiresIn: '4h' }
     );
-}
-
-const userFromJWT = async (): Promise<Users> => {
-    throw new Error("Implementar!");
 }
 
 export { login, generateJWT };

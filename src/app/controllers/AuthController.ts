@@ -1,6 +1,7 @@
 import { Request, Response, Router } from 'express';
 import Users from '../entities/Users.js';
 import { login, generateJWT } from '../services/AuthService.js';
+import { getUserByID } from '../services/UsersService.js';
 import Roles from '../entities/Roles.js';
 import { loginLimiter } from '../middlewares/rateLimiter.js';
 import { authMiddleware, AuthRequest } from '../middlewares/authMiddleware.js';
@@ -34,8 +35,25 @@ authRouter.post('/login', loginLimiter, async (_req: Request, res: Response) => 
 
 });
 
-authRouter.get('/me', authMiddleware, (req: AuthRequest, res: Response) => {
-    res.status(200).json(req.loggedUser);
+authRouter.get('/me', authMiddleware, (_req: AuthRequest, res: Response) => {
+    if (_req.loggedUser === null || _req.loggedUser === undefined) {
+        res.status(500).json({
+            status: 500,
+            message: "Erro ao buscar informações sobre o usuário logado.",
+            error: "Token não retorna usuário válido"
+        });
+    }
+    getUserByID(_req.loggedUser!.idUser)
+    .then((user: Users) => {
+        res.status(200).json(user);
+    })
+    .catch((error: Error) => {
+        res.status(500).json({
+            status: 500,
+            message: "Erro ao buscar informações sobre o usuário logado.",
+            error: error.message
+        });
+    })
 });
 
 export { authRouter };

@@ -4,9 +4,13 @@ import { Not } from "typeorm";
 
 const userRepository = AppDataSource.getRepository(Users);
 
-const getActiveUserByEmail = async (email: string): Promise<Users | null> => {
-    return userRepository.findOne({ where: { email, active: true } , relations: ['roles'] });
+const getByEmailAndActive = async (email: string): Promise<Users | null> => {
+    return userRepository.findOne({ where: { email, active: true }, relations: ['roles'] });
 };
+
+const getByID = async (idUser: number): Promise<Users | null> => {
+    return userRepository.findOne({ where: { idUser: idUser}, relations: ['roles'] })
+}
 
 const checkIfExistsByEmailAndNotId = async (idUser: number | null, email: string): Promise<boolean> => {
     const where: any = { email };
@@ -22,7 +26,8 @@ const save = async (user: Users): Promise<Users> => {
 };
 
 export { 
-    getActiveUserByEmail, 
+    getByEmailAndActive, 
+    getByID,
     checkIfExistsByEmailAndNotId, 
     save 
 }

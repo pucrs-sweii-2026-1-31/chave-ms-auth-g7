@@ -1,7 +1,7 @@
 import Users from '../entities/Users.js';
 import Roles from '../entities/Roles.js';
 import { Gender } from '../interfaces/iUsers.js';
-import { checkIfExistsByEmailAndNotId, save } from '../repositories/UserRepository.js';
+import { checkIfExistsByEmailAndNotId, getByID, save } from '../repositories/UserRepository.js';
 import { getRoleByName } from '../repositories/RoleRepository.js';
 import bcrypt from 'bcrypt';
 
@@ -100,4 +100,14 @@ const isValidPassword = (password: string): boolean => {
     );
 };
 
-export { createUser };
+const getUserByID = async (idUser: number): Promise<Users> => {
+    let user = await getByID(idUser);
+    if (user === null) {
+        throw new Error(`Usuário com id: ${idUser} não localizado`)
+    }
+    let { passwordHash: _, ...userWithoutPassword } = user;
+
+    return userWithoutPassword as Users;
+};
+
+export { createUser, getUserByID };
