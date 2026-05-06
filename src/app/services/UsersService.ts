@@ -12,7 +12,6 @@ const createUser = async (payload: {
     email: string,
     password: string,
     confirmationPassword: string
-    
 }): Promise<Users> => {
     allUserCreateDataValidations(payload);
 
@@ -155,4 +154,41 @@ const updateUser = async (idUser: number, payload: {
     return userWithoutPassword as Users;
 };
 
-export { createUser, getUserByID, updateUser };
+const copyRoles = async (idUser: number, idLoggedUser: number): Promise<Users> => {
+    let userToImprove: Users | null = await getByID(idUser);
+    if (!userToImprove) {
+        throw new Error("Usuário a receber novos roles não identificado.");
+    }
+    const userToBeCopiedFrom: Users | null = await getByID(idLoggedUser);
+    if (!userToImprove || userToImprove === null) {
+        throw new Error("Não foi possível localizar o usuário a ser copiado.");
+    }
+    userToImprove.roles = userToBeCopiedFrom!.roles;
+    
+    let { passwordHash: _, ...userWithoutPassword } = await save(userToImprove);
+
+    return userWithoutPassword as Users;
+};
+
+const getAllUsers = async (): Promise<Users[]> => {
+    return [];
+}
+
+const downgradeRoles = async (idUser: number): Promise<Users> => {
+    const userToDowngrade: Users | null = await getByID(idUser);
+    if (userToDowngrade === null) {
+        throw new Error("Usuário a receber novos roles não identificado")
+    }
+    
+    let basicRole = await getRoleByName("geral") as Roles;
+    if (basicRole === null) {
+        throw new Error("Falha ao localizar função geral no sistema");
+    } 
+    userToDowngrade.roles = [basicRole];
+
+    let { passwordHash: _, ...userWithoutPassword } = await save(userToDowngrade);
+
+    return userWithoutPassword as Users;
+};
+
+export { createUser, getUserByID, updateUser, getAllUsers, copyRoles, downgradeRoles };
