@@ -238,11 +238,68 @@ export const swaggerSpec = {
     '/users/save': {
       put: {
         tags: ['Usuários'],
-        summary: 'Atualiza dados do usuário',
-        description: 'Endpoint reservado para atualização de dados do usuário. (em implementação)',
+        summary: 'Atualiza dados do usuário autenticado',
+        description: [
+          'Atualiza parcialmente os dados do usuário identificado pelo token JWT.',
+          '',
+          'Todos os campos são opcionais — apenas os enviados serão atualizados.',
+          '',
+          '**Regras de validação (quando o campo é enviado):**',
+          '- Nome: somente letras e espaços (acentos permitidos)',
+          '- Data de nascimento: deve ser uma data passada',
+          '- Email: formato válido e único no sistema',
+          '- Gênero: deve ser Masculino, Feminino ou Indefinido',
+        ].join('\n'),
         security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', example: 'João Silva' },
+                  birthday: { type: 'string', format: 'date', example: '2000-05-15' },
+                  gender: {
+                    type: 'string',
+                    enum: ['Masculino', 'Feminino', 'Indefinido'],
+                    example: 'Masculino',
+                  },
+                  email: { type: 'string', format: 'email', example: 'joao@email.com' },
+                },
+              },
+            },
+          },
+        },
         responses: {
-          501: { description: 'Não implementado' },
+          200: {
+            description: 'Usuário atualizado com sucesso',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/UserResponse' },
+              },
+            },
+          },
+          401: {
+            description: 'Token ausente, inválido ou expirado',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'integer', example: 401 },
+                    message: { type: 'string', example: 'Token inválido ou expirado.' },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: 'Erro de validação ou erro interno',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Error' } },
+            },
+          },
         },
       },
     },

@@ -1,7 +1,8 @@
 import { Request, Response, Router } from 'express';
 import Users from '../entities/Users.js';
-import { createUser } from '../services/UsersService.js';
+import { createUser, updateUser } from '../services/UsersService.js';
 import { signUpLimiter } from '../middlewares/rateLimiter.js';
+import { authMiddleware, AuthRequest } from '../middlewares/authMiddleware.js';
 
 const userRouter = Router();
 
@@ -34,8 +35,20 @@ userRouter.post('/sign-up', signUpLimiter, async (_req: Request, res: Response) 
     
 });
 
-userRouter.put('/save', async (_req: Request, res: Response) => {
-
+userRouter.put('/save', authMiddleware, async (_req: AuthRequest, res: Response) => {
+    const { name, birthday, gender, email } = _req.body;
+    updateUser(_req.loggedUser!.idUser, { name, birthday, gender, email })
+        .then((user: Users) => {
+            res.status(200).json(user);
+        })
+        .catch((error: Error) => {
+            console.log(error);
+            res.status(500).json({
+                status: 500,
+                message: "Erro ao tentar atualizar o usuário.",
+                error: error.message
+            });
+        });
 });
 
 export { userRouter };

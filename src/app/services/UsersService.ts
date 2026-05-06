@@ -110,4 +110,48 @@ const getUserByID = async (idUser: number): Promise<Users> => {
     return userWithoutPassword as Users;
 };
 
-export { createUser, getUserByID };
+const updateUser = async (idUser: number, payload: {
+    name?: string,
+    birthday?: Date,
+    gender?: Gender,
+    email?: string,
+}): Promise<Users> => {
+    let user = await getByID(idUser);
+    if (user === null) {
+        throw new Error(`Usuário com id: ${idUser} não localizado`);
+    }
+
+    if (payload.name !== undefined) {
+        if (!isValidName(payload.name)) {
+            throw new Error("Deve ser informado o nome do usuário.");
+        }
+        user.name = payload.name;
+    }
+
+    if (payload.birthday !== undefined) {
+        if (!isValidBirthday(payload.birthday)) {
+            throw new Error("A data de nascimento deve ser informada e deve ser uma data no passado.");
+        }
+        user.birthday = payload.birthday;
+    }
+
+    if (payload.gender !== undefined) {
+        user.gender = payload.gender;
+    }
+
+    if (payload.email !== undefined) {
+        if (!isValidEmail(payload.email)) {
+            throw new Error("O email informado não está em formato de email");
+        }
+        if (await validateClearEmail(idUser, payload.email)) {
+            throw new Error("Email já em uso.");
+        }
+        user.email = payload.email;
+    }
+
+    let { passwordHash: _, ...userWithoutPassword } = await save(user);
+
+    return userWithoutPassword as Users;
+};
+
+export { createUser, getUserByID, updateUser };
