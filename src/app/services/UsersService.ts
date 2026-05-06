@@ -12,6 +12,7 @@ const createUser = async (payload: {
     email: string,
     password: string,
     confirmationPassword: string
+    
 }): Promise<Users> => {
     allUserCreateDataValidations(payload);
 
