@@ -35,7 +35,10 @@ authRouter.post('/login', loginLimiter, async (_req: Request, res: Response) => 
 });
 
 authRouter.post('/logout', authMiddleware, async (_req: AuthRequest, res: Response) => {
-    const token = _req.headers.authorization!.split(' ')[1];
+    if (_req.headers.authorization === null || _req.headers.authorization === undefined) {
+        return res.status(400).json({ message: 'Authorization obrigatório' });
+    }
+    const token = _req.headers.authorization.split(' ')[1];
 
     revokeToken(token)
     .then(() => {
