@@ -54,6 +54,28 @@ export const swaggerSpec = {
           confirmationPassword: { type: 'string', format: 'password', example: 'Senha@12345' },
         },
       },
+      UpdateUserRequest: {
+        type: 'object',
+        required: ['idUser'],
+        properties: {
+          idUser: { type: 'integer', example: 2 },
+          name: { type: 'string', example: 'João Silva' },
+          birthday: { type: 'string', format: 'date', example: '2000-05-15' },
+          gender: {
+            type: 'string',
+            enum: ['Masculino', 'Feminino', 'Indefinido'],
+            example: 'Masculino',
+          },
+          email: { type: 'string', format: 'email', example: 'joao@email.com' },
+        },
+      },
+      UserIdRequest: {
+        type: 'object',
+        required: ['idUser'],
+        properties: {
+          idUser: { type: 'integer', example: 2 },
+        },
+      },
       UserResponse: {
         type: 'object',
         properties: {
@@ -91,6 +113,21 @@ export const swaggerSpec = {
           status: { type: 'integer', example: 500 },
           message: { type: 'string', example: 'Erro interno.' },
           error: { type: 'string' },
+        },
+      },
+      Forbidden: {
+        type: 'object',
+        properties: {
+          status: { type: 'integer', example: 403 },
+          message: { type: 'string', example: 'Erro ao tentar realizar a operação.' },
+          error: { type: 'string', example: 'Somente administradores podem realizar essa operação' },
+        },
+      },
+      Unauthorized: {
+        type: 'object',
+        properties: {
+          status: { type: 'integer', example: 401 },
+          message: { type: 'string', example: 'Token inválido ou expirado.' },
         },
       },
     },
@@ -238,11 +275,13 @@ export const swaggerSpec = {
     '/users/save': {
       put: {
         tags: ['Usuários'],
-        summary: 'Atualiza dados do usuário autenticado',
+        summary: 'Atualiza dados de um usuário (admin)',
         description: [
-          'Atualiza parcialmente os dados do usuário identificado pelo token JWT.',
+          'Atualiza parcialmente os dados de qualquer usuário pelo `idUser` informado no body.',
           '',
-          'Todos os campos são opcionais — apenas os enviados serão atualizados.',
+          '**Requer perfil de administrador.**',
+          '',
+          'Todos os campos além de `idUser` são opcionais — apenas os enviados serão atualizados.',
           '',
           '**Regras de validação (quando o campo é enviado):**',
           '- Nome: somente letras e espaços (acentos permitidos)',
@@ -255,19 +294,7 @@ export const swaggerSpec = {
           required: true,
           content: {
             'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  name: { type: 'string', example: 'João Silva' },
-                  birthday: { type: 'string', format: 'date', example: '2000-05-15' },
-                  gender: {
-                    type: 'string',
-                    enum: ['Masculino', 'Feminino', 'Indefinido'],
-                    example: 'Masculino',
-                  },
-                  email: { type: 'string', format: 'email', example: 'joao@email.com' },
-                },
-              },
+              schema: { $ref: '#/components/schemas/UpdateUserRequest' },
             },
           },
         },
@@ -283,19 +310,152 @@ export const swaggerSpec = {
           401: {
             description: 'Token ausente, inválido ou expirado',
             content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    status: { type: 'integer', example: 401 },
-                    message: { type: 'string', example: 'Token inválido ou expirado.' },
-                  },
-                },
-              },
+              'application/json': { schema: { $ref: '#/components/schemas/Unauthorized' } },
+            },
+          },
+          403: {
+            description: 'Usuário autenticado não é administrador',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Forbidden' } },
             },
           },
           500: {
             description: 'Erro de validação ou erro interno',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Error' } },
+            },
+          },
+        },
+      },
+    },
+    '/users/all': {
+      get: {
+        tags: ['Usuários'],
+        summary: 'Lista todos os usuários (admin)',
+        description: 'Retorna a lista completa de usuários cadastrados. **Requer perfil de administrador.**',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Lista de usuários retornada com sucesso',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/UserResponse' },
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Token ausente, inválido ou expirado',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Unauthorized' } },
+            },
+          },
+          403: {
+            description: 'Usuário autenticado não é administrador',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Forbidden' } },
+            },
+          },
+          500: {
+            description: 'Erro interno',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Error' } },
+            },
+          },
+        },
+      },
+    },
+    '/users/copy-roles': {
+      put: {
+        tags: ['Usuários'],
+        summary: 'Copia as roles do admin para outro usuário (admin)',
+        description: [
+          'Copia todas as roles do administrador autenticado para o usuário identificado por `idUser`.',
+          '',
+          '**Requer perfil de administrador.**',
+        ].join('\n'),
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/UserIdRequest' },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Roles copiadas com sucesso',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/UserResponse' },
+              },
+            },
+          },
+          401: {
+            description: 'Token ausente, inválido ou expirado',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Unauthorized' } },
+            },
+          },
+          403: {
+            description: 'Usuário autenticado não é administrador',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Forbidden' } },
+            },
+          },
+          500: {
+            description: 'Usuário não encontrado ou erro interno',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Error' } },
+            },
+          },
+        },
+      },
+    },
+    '/users/downgrade-roles': {
+      put: {
+        tags: ['Usuários'],
+        summary: 'Remove privilégios de um usuário (admin)',
+        description: [
+          'Reverte as roles do usuário identificado por `idUser` para somente a role padrão **geral**.',
+          '',
+          '**Requer perfil de administrador.**',
+        ].join('\n'),
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/UserIdRequest' },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Privilégios removidos com sucesso',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/UserResponse' },
+              },
+            },
+          },
+          401: {
+            description: 'Token ausente, inválido ou expirado',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Unauthorized' } },
+            },
+          },
+          403: {
+            description: 'Usuário autenticado não é administrador',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Forbidden' } },
+            },
+          },
+          500: {
+            description: 'Usuário não encontrado ou erro interno',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/Error' } },
             },
