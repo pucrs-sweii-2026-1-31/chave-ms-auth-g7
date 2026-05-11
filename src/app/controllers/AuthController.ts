@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import Users from '../entities/Users.js';
-import { login, generateJWT } from '../services/AuthService.js';
+import { login, generateJWT, revokeToken } from '../services/AuthService.js';
 import { getUserByID } from '../services/UsersService.js';
 import Roles from '../entities/Roles.js';
 import { loginLimiter } from '../middlewares/rateLimiter.js';
@@ -32,6 +32,22 @@ authRouter.post('/login', loginLimiter, async (_req: Request, res: Response) => 
             error: error.message
         });
     })
+});
+
+authRouter.post('/logout', authMiddleware, async (_req: AuthRequest, res: Response) => {
+    const token = _req.headers.authorization!.split(' ')[1];
+
+    revokeToken(token)
+    .then(() => {
+        return res.status(200).json({ message: 'Logout realizado com sucesso.' });
+    })
+    .catch((error: Error) => {
+        return res.status(500).json({
+            status: 500,
+            message: 'Erro ao realizar logout.',
+            error: error.message
+        });
+    });
 });
 
 authRouter.get('/me', authMiddleware, (_req: AuthRequest, res: Response) => {

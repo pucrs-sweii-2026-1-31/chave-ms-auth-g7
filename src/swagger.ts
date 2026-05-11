@@ -178,6 +178,41 @@ export const swaggerSpec = {
         },
       },
     },
+    '/auth/logout': {
+      post: {
+        tags: ['Autenticação'],
+        summary: 'Logout do usuário',
+        description: 'Invalida o token JWT atual, adicionando-o à blocklist no banco de dados. O token deixa de ser aceito imediatamente, mesmo que ainda não tenha expirado.',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Logout realizado com sucesso',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: { type: 'string', example: 'Logout realizado com sucesso.' },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: 'Token ausente, inválido, expirado ou já revogado',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Unauthorized' } },
+            },
+          },
+          500: {
+            description: 'Erro interno ao revogar o token',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/Error' } },
+            },
+          },
+        },
+      },
+    },
     '/auth/me': {
       get: {
         tags: ['Autenticação'],
