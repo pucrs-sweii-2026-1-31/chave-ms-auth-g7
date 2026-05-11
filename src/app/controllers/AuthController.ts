@@ -62,7 +62,7 @@ authRouter.get('/me', authMiddleware, (_req: AuthRequest, res: Response) => {
         });
     }
 
-    getUserByID(_req.loggedUser!.idUser)
+    getUserByID(_req.loggedUser.idUser)
     .then((user: Users) => {
         return res.status(200).json(user);
     })

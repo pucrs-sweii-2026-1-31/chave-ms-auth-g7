@@ -45,7 +45,7 @@ userRouter.put('/save', authMiddleware, async (_req: AuthRequest, res: Response)
             error: "Não foi possivel authenticar o seu usuário"
         });
     }
-    const isAdmin = await checkUserIsAdmin(idLoggedUser!);
+    const isAdmin = await checkUserIsAdmin(idLoggedUser);
     if (!isAdmin) {
         return res.status(403).json({
             status: 403,
@@ -78,7 +78,7 @@ userRouter.get('/all', authMiddleware, async (_req: AuthRequest, res: Response) 
             error: "Não foi possivel authenticar o seu usuário"
         });
     }
-    const isAdmin = await checkUserIsAdmin(idLoggedUser!);
+    const isAdmin = await checkUserIsAdmin(idLoggedUser);
     if (!isAdmin) {
         return res.status(403).json({
             status: 403,
@@ -111,7 +111,7 @@ userRouter.put('/copy-roles', authMiddleware, async (_req: AuthRequest, res: Res
             error: "Não foi possivel authenticar o seu usuário"
         });
     }
-    const isAdmin = await checkUserIsAdmin(idLoggedUser!);
+    const isAdmin = await checkUserIsAdmin(idLoggedUser);
     if (!isAdmin) {
         return res.status(403).json({
             status: 403,
@@ -145,7 +145,7 @@ userRouter.put('/downgrade-roles', authMiddleware, async (_req: AuthRequest, res
             error: "Não foi possivel authenticar o seu usuário"
         });
     }
-    const isAdmin = await checkUserIsAdmin(idLoggedUser!);
+    const isAdmin = await checkUserIsAdmin(idLoggedUser);
     if (!isAdmin) {
         return res.status(403).json({
             status: 403,
