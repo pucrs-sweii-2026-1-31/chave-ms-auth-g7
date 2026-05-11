@@ -18,7 +18,7 @@ authRouter.post('/login', loginLimiter, async (_req: Request, res: Response) => 
     login(email, password)
     .then((user: Users) => {
         let token = generateJWT(user);
-        res.status(200).json({
+        return res.status(200).json({
             email: user.email,
             roles: user.roles.map((role: Roles) => role.name),
             token: token
@@ -26,29 +26,29 @@ authRouter.post('/login', loginLimiter, async (_req: Request, res: Response) => 
     })
     .catch((error: Error) => {
         console.log(error);
-        res.status(500).json({
+        return res.status(500).json({
             status: 500,
             message: "Erro ao tentar criar um novo usuário.",
             error: error.message
         });
     })
-
 });
 
 authRouter.get('/me', authMiddleware, (_req: AuthRequest, res: Response) => {
     if (_req.loggedUser === null || _req.loggedUser === undefined) {
-        res.status(500).json({
-            status: 500,
+        return res.status(401).json({
+            status: 401,
             message: "Erro ao buscar informações sobre o usuário logado.",
-            error: "Token não retorna usuário válido"
+            error: "Não foi possível authenticar o seu usuário."
         });
     }
+
     getUserByID(_req.loggedUser!.idUser)
     .then((user: Users) => {
-        res.status(200).json(user);
+        return res.status(200).json(user);
     })
     .catch((error: Error) => {
-        res.status(500).json({
+        return res.status(500).json({
             status: 500,
             message: "Erro ao buscar informações sobre o usuário logado.",
             error: error.message

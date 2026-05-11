@@ -1,7 +1,7 @@
 import Users from '../entities/Users.js';
 import Roles from '../entities/Roles.js';
 import { Gender } from '../interfaces/iUsers.js';
-import { checkIfExistsByEmailAndNotId, getByID, save } from '../repositories/UserRepository.js';
+import { checkIfExistsByEmailAndNotId, getByID, getAll, save } from '../repositories/UserRepository.js';
 import { getRoleByName } from '../repositories/RoleRepository.js';
 import bcrypt from 'bcrypt';
 
@@ -110,6 +110,10 @@ const getUserByID = async (idUser: number): Promise<Users> => {
     return userWithoutPassword as Users;
 };
 
+const getAllUsers = async (): Promise<Users[]> => {
+    return getAll();
+}
+
 const updateUser = async (idUser: number, payload: {
     name?: string,
     birthday?: Date,
@@ -154,25 +158,34 @@ const updateUser = async (idUser: number, payload: {
     return userWithoutPassword as Users;
 };
 
+const checkUserIsAdmin = async (idUser: number): Promise<boolean> => {
+    const loggedUser = await getUserByID(idUser);
+    let adminId = 2;
+    if (loggedUser.roles.some(role => role.idRole === adminId)) {
+        return true;
+    }
+    return false;
+};
+
 const copyRoles = async (idUser: number, idLoggedUser: number): Promise<Users> => {
     let userToImprove: Users | null = await getByID(idUser);
     if (!userToImprove) {
         throw new Error("Usuário a receber novos roles não identificado.");
     }
     const userToBeCopiedFrom: Users | null = await getByID(idLoggedUser);
-    if (!userToImprove || userToImprove === null) {
+    if (!userToImprove) {
         throw new Error("Não foi possível localizar o usuário a ser copiado.");
     }
-    userToImprove.roles = userToBeCopiedFrom!.roles;
+    try {
+        userToImprove.roles = userToBeCopiedFrom!.roles;
+    } catch {
+        throw new Error("Falha ao definir novos roles para o usuário");
+    }
     
     let { passwordHash: _, ...userWithoutPassword } = await save(userToImprove);
 
     return userWithoutPassword as Users;
 };
-
-const getAllUsers = async (): Promise<Users[]> => {
-    return [];
-}
 
 const downgradeRoles = async (idUser: number): Promise<Users> => {
     const userToDowngrade: Users | null = await getByID(idUser);
@@ -191,4 +204,4 @@ const downgradeRoles = async (idUser: number): Promise<Users> => {
     return userWithoutPassword as Users;
 };
 
-export { createUser, getUserByID, updateUser, getAllUsers, copyRoles, downgradeRoles };
+export { createUser, getUserByID, updateUser, getAllUsers, copyRoles, downgradeRoles, checkUserIsAdmin };
