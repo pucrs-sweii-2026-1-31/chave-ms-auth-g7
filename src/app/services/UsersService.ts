@@ -111,7 +111,12 @@ const getUserByID = async (idUser: number): Promise<Users> => {
 };
 
 const getAllUsers = async (): Promise<Users[]> => {
-    return getAll();
+    let users: Users[] = await getAll();
+    let usersWithoutPassword: Users[] = users.map((user: Users) => {
+        let { passwordHash: _, ...userWithoutPassword } = user;
+        return userWithoutPassword as Users;
+    })
+    return usersWithoutPassword;
 }
 
 const updateUser = async (idUser: number, payload: {
