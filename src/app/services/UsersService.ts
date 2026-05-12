@@ -1,7 +1,7 @@
 import Users from '../entities/Users.js';
 import Roles from '../entities/Roles.js';
 import { Gender } from '../interfaces/iUsers.js';
-import { checkIfExistsByEmailAndNotId, getByID, save } from '../repositories/UserRepository.js';
+import { checkIfExistsByEmailAndNotId, getByID, getAll, save } from '../repositories/UserRepository.js';
 import { getRoleByName } from '../repositories/RoleRepository.js';
 import bcrypt from 'bcrypt';
 
@@ -12,7 +12,6 @@ const createUser = async (payload: {
     email: string,
     password: string,
     confirmationPassword: string
-    
 }): Promise<Users> => {
     allUserCreateDataValidations(payload);
 
@@ -111,6 +110,15 @@ const getUserByID = async (idUser: number): Promise<Users> => {
     return userWithoutPassword as Users;
 };
 
+const getAllUsers = async (): Promise<Users[]> => {
+    let users: Users[] = await getAll();
+    let usersWithoutPassword: Users[] = users.map((user: Users) => {
+        let { passwordHash: _, ...userWithoutPassword } = user;
+        return userWithoutPassword as Users;
+    })
+    return usersWithoutPassword;
+}
+
 const updateUser = async (idUser: number, payload: {
     name?: string,
     birthday?: Date,
@@ -155,4 +163,50 @@ const updateUser = async (idUser: number, payload: {
     return userWithoutPassword as Users;
 };
 
-export { createUser, getUserByID, updateUser };
+const checkUserIsAdmin = async (idUser: number): Promise<boolean> => {
+    const loggedUser = await getUserByID(idUser);
+    let adminId = 2;
+    if (loggedUser.roles.some(role => role.idRole === adminId)) {
+        return true;
+    }
+    return false;
+};
+
+const copyRoles = async (idUser: number, idLoggedUser: number): Promise<Users> => {
+    let userToImprove: Users | null = await getByID(idUser);
+    if (!userToImprove) {
+        throw new Error("Usuário a receber novos roles não identificado.");
+    }
+    const userToBeCopiedFrom: Users | null = await getByID(idLoggedUser);
+    if (!userToImprove) {
+        throw new Error("Não foi possível localizar o usuário a ser copiado.");
+    }
+    try {
+        userToImprove.roles = userToBeCopiedFrom!.roles;
+    } catch {
+        throw new Error("Falha ao definir novos roles para o usuário");
+    }
+    
+    let { passwordHash: _, ...userWithoutPassword } = await save(userToImprove);
+
+    return userWithoutPassword as Users;
+};
+
+const downgradeRoles = async (idUser: number): Promise<Users> => {
+    const userToDowngrade: Users | null = await getByID(idUser);
+    if (userToDowngrade === null) {
+        throw new Error("Usuário a receber novos roles não identificado")
+    }
+    
+    let basicRole = await getRoleByName("geral") as Roles;
+    if (basicRole === null) {
+        throw new Error("Falha ao localizar função geral no sistema");
+    } 
+    userToDowngrade.roles = [basicRole];
+
+    let { passwordHash: _, ...userWithoutPassword } = await save(userToDowngrade);
+
+    return userWithoutPassword as Users;
+};
+
+export { createUser, getUserByID, updateUser, getAllUsers, copyRoles, downgradeRoles, checkUserIsAdmin };

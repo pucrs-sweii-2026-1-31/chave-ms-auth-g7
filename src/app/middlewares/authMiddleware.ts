@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { exists as isRevoked } from '../repositories/RevokedTokenRepository.js';
 dotenv.config();
 
 const SECRET = process.env.JWT_SECRET ?? 'change_me';
@@ -13,7 +14,7 @@ export interface AuthRequest extends Request {
     };
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -25,6 +26,12 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
 
     try {
         const decoded = jwt.verify(token, SECRET) as AuthRequest['loggedUser'];
+
+        if (await isRevoked(token)) {
+            res.status(401).json({ status: 401, message: 'Token inválido ou expirado.' });
+            return;
+        }
+
         req.loggedUser = decoded;
         next();
     } catch (_e) {

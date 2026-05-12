@@ -25,9 +25,14 @@ const save = async (user: Users): Promise<Users> => {
     return userRepository.save(user);
 };
 
+const getAll = async (): Promise<Users[]> => {
+    return userRepository.find({ relations: ['roles'] });
+}
+
 export { 
     getByEmailAndActive, 
     getByID,
     checkIfExistsByEmailAndNotId, 
-    save 
+    save,
+    getAll
 }
